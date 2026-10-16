@@ -30,7 +30,7 @@ header span,
   color: #758569;
 }
 main {
-  max-width: 1200px;
+  max-width: 1500px;
   margin: auto;
   padding: 40px 24px;
 }
@@ -64,6 +64,10 @@ aside {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 24px;
+}
+/* Leave more room for two readable response panels alongside the input controls. */
+.grid.two-images {
+  grid-template-columns: minmax(280px, 1fr) minmax(0, 2fr);
 }
 section {
   padding: 26px;
@@ -166,10 +170,18 @@ button:hover:enabled {
 }
 #result {
   flex: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  align-items: stretch;
+  gap: 20px;
   min-height: 350px;
   border: 0;
   background: #f8faf4;
   padding: 20px;
+}
+#result.two-images {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 #result {
   white-space: pre-wrap;
@@ -188,11 +200,17 @@ button:hover:enabled {
   /* HTML descriptions wrap normally; literal OCR retains the parent's line breaks. */
   white-space: normal;
 }
-.image-result + .image-result {
-  /* Add a divider only between answers; a single image needs no extra separator. */
-  border-top: 1px solid #d7e0cf;
-  margin-top: 24px;
-  padding-top: 20px;
+.image-result {
+  /* Each image has its own bordered panel; answers grow without an inner scrollbar. */
+  min-width: 0;
+  padding: 18px;
+  background: white;
+  border: 1px solid #d7e0cf;
+  border-radius: 10px;
+  white-space: normal;
+}
+.image-output {
+  white-space: pre-wrap;
 }
 .image-result h3 {
   /* Image number and filename visibly connect each response to its preview. */
@@ -268,7 +286,9 @@ footer {
 }
 /* Stack the workspace and tighten spacing on smaller screens. */
 @media (max-width: 750px) {
-  .grid {
+  .grid,
+  .grid.two-images,
+  #result.two-images {
     grid-template-columns: 1fr;
   }
   header span {

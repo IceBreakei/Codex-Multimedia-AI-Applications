@@ -194,3 +194,19 @@ Changes and explanations:
 Validation:
 - node --check main.js passed.
 - Documentation-only change: comments and this log entry were added without changing application behavior or adding files.
+
+---
+Date: 2026-10-16 (America/Vancouver)
+User prompt:
+can you make the responses side by side rather then scroll? Make a second panel pop up for the second image if there is a second image.
+
+Changes and explanations:
+- Changed the result area to a grid with two side-by-side bordered response panels when two images are selected. A single image uses one panel. Panels grow with their content without nested scrollbars.
+- Added workspace layout classes for the two-image state and widened the maximum content area to give both responses readable space alongside the input controls. Small screens stack panels to avoid horizontal overflow.
+- Build all selected-image response panels before the first request begins, so the Image 2 panel is immediately visible with a waiting status while Image 1 processes. Responses still run sequentially and populate their own numbered panels.
+- If generation stops, pending panels show that they were not processed instead of waiting indefinitely.
+- Kept the four application files and updated comments explaining the layout.
+Validation:
+- node --check main.js passed.
+- In-memory UI checks confirmed two panels exist before inference starts, separate responses populate their matching panels, and one selection creates only one panel.
+- Browser visual review was not performed.

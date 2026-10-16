@@ -241,6 +241,9 @@ async function choose(files) {
 
 // Array order determines both preview numbering and result numbering.
 function renderPreviews() {
+    // Two selections reserve two side-by-side response columns on wide screens.
+    $("workspace").classList.toggle("two-images", images.length === 2);
+    $("result").classList.toggle("two-images", images.length === 2);
     // Rebuild all cards so labels and removal handlers use the latest array indexes.
     $("previews").replaceChildren();
     images.forEach((image, index) => {
@@ -311,9 +314,8 @@ $("form").onsubmit = async (e) => {
         // With one image, this loop runs once: no placeholder or request for Image 2.
         // With two, await finishes Image 1 before starting Image 2. These are two
         // independent requests, not a comparison prompt containing both images.
-        for (const [index, image] of images.entries()) {
-            // A cancellation between requests prevents the next job from starting.
-            controller.signal.throwIfAborted();
+        // Build both panels immediately so Image 2 is visible while Image 1 runs.
+        const outputs = images.map((image, index) => {
             const card = document.createElement("article");
             card.className = "image-result";
             const heading = document.createElement("h3");
@@ -322,10 +324,17 @@ $("form").onsubmit = async (e) => {
             heading.textContent = `Image ${index + 1}: ${image.name}`;
             const output = document.createElement("div");
             output.className = "image-output";
-            output.textContent = "Waiting for Ollama...";
+            output.textContent = "Waiting to process...";
             card.append(heading, output);
             // Append, rather than replace, so earlier completed answers remain visible.
             $("result").append(card);
+            return output;
+        });
+        for (const [index, image] of images.entries()) {
+            // A cancellation between requests prevents the next job from starting.
+            controller.signal.throwIfAborted();
+            const output = outputs[index];
+            output.textContent = "Waiting for Ollama...";
             $("status").textContent = `Processing Image ${index + 1} of ${images.length}...`;
             try {
                 // /chat takes a model tag and a user message containing raw base64.
@@ -363,6 +372,9 @@ $("form").onsubmit = async (e) => {
                 output.textContent = error.name === "AbortError"
                     ? "Cancelled. No result generated."
                     : `Could not process this image: ${error.message}`;
+                for (const waiting of outputs.slice(index + 1)) {
+                    waiting.textContent = "Not processed because generation stopped.";
+                }
                 throw error;
             }
         }
