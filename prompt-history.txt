@@ -97,3 +97,61 @@ Validation:
 - node --check main.js passed.
 - In-memory mocked checks passed for vision-only options, text-only exclusion, failed lookups, Gemma 4 default selection, selection preservation, empty vision results, and Ollama outages. No test files were added.
 - Live Ollama capability discovery was not tested.
+
+---
+Date: 2026-10-15 (America/Vancouver)
+User prompt:
+Now can you write the code for the javascript for this OCR / Describe Image to work?
+
+Changes and explanations:
+- Reviewed the existing browser implementation and completed reliability improvements in main.js. Existing direct API wiring remains: /api/tags for models, /api/show for vision capabilities, and /api/chat for OCR and descriptions.
+- Added requestOllama to consistently parse responses and report HTTP, model, or unreadable-response errors. Explanation: failed API requests now produce useful errors rather than inconsistent JSON failures.
+- Added image-loading state and selection tracking. Generation waits for decoding, and an older file operation cannot overwrite a newer selection or restore a removed image. Explanation: ensure the submitted image matches the latest completed selection.
+- Added explicit submission validation for image, confirmed vision model, and task. The button now displays Extract text or Describe image to match the selected mode and Processing image during generation.
+- Preserved optional instructions/questions in both task prompts, raw base64 image requests, cancellation, five-minute timeout, empty-output handling, and text export. Release the request controller after completion.
+- Preserved the user's existing HTML and CSS edits and retained the four-file application structure. No server, dependencies, or permanent test files were added. Existing .git metadata was left untouched.
+Validation and explanations:
+- node --check main.js passed.
+- In-memory browser mocks passed for model filtering, image reading/decoding, OCR, description, custom instructions, result display, API errors, empty output, cancellation cleanup, and image removal.
+- Live Ollama /api/tags confirmed connectivity; /api/show confirmed gemma4:latest supports vision.
+- Created an image containing HELLO 123 entirely in memory and sent it to gemma4:latest through /api/chat. The live OCR response was exactly HELLO 123. No test image was saved.
+- Live browser origin permissions and visual behavior were not tested. The direct API test verifies local model inference independently of browser CORS permissions; open index.html through Live Server to use the app.
+
+---
+Date: 2026-10-15 (America/Vancouver)
+User prompt:
+The described text bold does not work. Please use HTML tags instead of *
+
+Changes and explanations:
+- Updated the description prompt to request an HTML fragment with paragraph, strong, emphasis, and list tags instead of Markdown asterisks.
+- Replaced the readonly results textarea with a focusable, labeled HTML region. Explanation: textareas display literal text and cannot render bold HTML.
+- Added an allowlist renderer that rebuilds simple formatting elements without attributes and excludes executable/embedded content. Explanation: display model-produced formatting without inserting untrusted HTML directly into the page.
+- Kept OCR output literal through textContent so transcribed HTML is displayed as text. Added CSS for formatted descriptions, literal OCR line breaks, bold weights, and empty-result placeholder.
+- Updated copy/save and button availability to read visible result text rather than a textarea value. Exports remain plain text.
+Validation:
+- node --check main.js passed.
+- In-memory renderer checks confirmed strong text is preserved, script content removed, and image event attributes discarded.
+- Browser visual rendering and live model adherence to HTML formatting were not tested.
+
+---
+Date: 2026-10-16 (America/Vancouver)
+User prompt:
+Please explain these in comments along the code so I can further understand how everything works.
+- how a browser can prepare and send an image
+- what type of Ollama model is capable of understanding images
+- how the request to Ollama should be structured
+- how to access the response returned by the AI
+- how to display the result in the browser
+- how to troubleshoot errors
+
+Changes and explanations:
+- Added an overview of the workflow at the top of main.js and detailed comments beside each relevant operation.
+- Explained File objects, FileReader, data URLs, base64 encoding and size overhead, image decoding, preview URLs, and removing the prefix for the API payload.
+- Explained vision/multimodal models versus text-only models and checking /api/show capabilities rather than relying on names.
+- Documented a complete /api/chat JSON example, model tags, user message roles, content, images, JSON serialization, headers, non-streaming responses, temperature, and cancellation/timeouts.
+- Explained asynchronous fetch, JSON parsing, HTTP versus network errors, and accessing data.message.content with optional chaining and blank-output validation.
+- Explained literal OCR via textContent and formatted descriptions via a filtered HTML tree, DOM replacement, and CSS. Included why a textarea cannot show HTML bold and why raw generated innerHTML should not be inserted.
+- Added troubleshooting comments for DevTools, connection failures, CORS/403 and exact origins, model tags, missing vision metadata, memory errors, timeouts, poor OCR, cancellation, and cleanup after errors.
+Validation:
+- node --check main.js passed.
+- Only comments and this history entry changed; application behavior was left unchanged. No new files were added.

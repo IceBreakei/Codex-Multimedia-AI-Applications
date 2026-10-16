@@ -171,6 +171,23 @@ button:hover:enabled {
   background: #f8faf4;
   padding: 20px;
 }
+#result {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  line-height: 1.6;
+  border-radius: 8px;
+}
+#result:empty::before {
+  content: attr(data-placeholder);
+  color: #7c8972;
+}
+#result.formatted {
+  white-space: normal;
+}
+#result strong,
+#result b {
+  font-weight: 700;
+}
 #status {
   font-size: 12px;
   color: #708164;
