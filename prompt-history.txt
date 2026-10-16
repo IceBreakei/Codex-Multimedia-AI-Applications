@@ -1,0 +1,99 @@
+﻿PROMPT AND CHANGE HISTORY
+
+Record user prompts, changes made, and explanations for each change. Append future entries to preserve the history.
+
+---
+Date: 2026-10-15 (America/Vancouver)
+User prompt:
+Before you do anything, please create a file called prompt-history.txt. You are to record all changes made, prompts, and provide explainations when recording prompt history and change history.
+
+Change history:
+- Created prompt-history.txt in the project root.
+Explanation: Establish the requested log before performing any other project work. Future entries will document user prompts, changes, and their reasons.
+- No application files changed.
+
+
+---
+Date: 2026-10-15 (America/Vancouver)
+User prompt:
+Could you now first build the framework for the application of a image to text application that uses Ollama for its AI. And tell me which model I need to install for Ollama for this to work.
+
+Changes and explanations:
+- Built index.html and style.css with a responsive two-column image upload and results interface. Explanation: provide the initial usable application framework with accessible labels, statuses, and mobile layout.
+- Replaced the two placeholder API constants in main.js with upload/drag-and-drop, image validation and preview, OCR/descriptions/questions, model selection, generation cancellation, error handling, clipboard copy, and text download. Explanation: connect the interface to an actual image-to-text workflow.
+- Added server.js as a dependency-free Node server with loopback binding, explicit static file routes, request size/type validation, same-origin inference checks, timeouts, cancellation forwarding, and Ollama model/chat endpoints. Explanation: connect to local Ollama without requiring browser CORS changes or persisting uploaded images.
+- Added package.json with start/test scripts and Node 22+ requirement. Explanation: make the application straightforward to run with no third-party dependencies.
+- Added README.md with installation commands, architecture, limits, local processing details, and official sources. Selected gemma3:4b as the default vision model after verifying Ollama documentation; gemma3:270m and gemma3:1b do not support images. Explanation: provide a concrete compatible model and setup path.
+- Added tests/server.test.js with mocked Ollama integration coverage for asset serving, model discovery, image request forwarding, invalid input, foreign origins, private-file exclusion, and service outages. Explanation: verify the application contract without downloading a model or requiring live inference.
+Validation:
+- node --check server.js and node --check main.js passed.
+- Initial sandboxed test execution failed with spawn EPERM. Re-ran through the approved escalation mechanism; node --test passed (1 integration test).
+- Live AI image inference and browser visual review have not been performed. Real inference requires a running Ollama instance and an installed vision model.
+
+---
+Date: 2026-10-15 (America/Vancouver)
+User prompt:
+can you format the code in a legiable human like format and explain what each key part is with comments.
+
+Changes and explanations:
+- Formatted index.html, style.css, main.js, server.js, package.json, and tests/server.test.js with consistent indentation, spacing, and line breaks. Explanation: replace compressed code with readable structure; HTML elements now have clear nesting and CSS declarations occupy separate lines.
+- Added HTML comments identifying page assets, connection status, input workflow, image preview, results, and accessible error messages. Explanation: make the page structure easy to navigate.
+- Added CSS comments explaining base styling, workspace columns, forms, upload states, buttons, preview sizing, hidden controls, keyboard focus, and responsive layout. Explanation: clarify the purpose of each major styling group.
+- Added JavaScript comments explaining DOM lookup, in-memory state, task prompts, control state, model discovery, image decoding/base64 conversion, upload events, cancellation, inference requests, error cleanup, and exports. Split application state declarations onto separate lines. Explanation: make the browser workflow easier to follow without changing its logic.
+- Added server comments explaining public asset routes, server creation, disconnect handling, JSON responses, Ollama timeouts, request limits, validation, image signatures, inference parameters, errors, and direct startup. Explanation: document how the browser connects to Ollama and where validation occurs.
+- Added integration-test comments explaining the mock service, cleanup, PNG fixture, origin check, and offline case. Explanation: clarify what the existing verification covers.
+- Used Prettier as a temporary formatting tool; no application dependencies were added. The sandbox could not access its npm cache, so formatting completed using the escalation mechanism.
+Validation:
+- JavaScript syntax checks passed.
+- node --test passed (1 integration test) after formatting and comments.
+- This change concerns source readability and documentation; no application logic or feature changes were intended.
+
+---
+Date: 2026-10-15 (America/Vancouver)
+User prompt:
+i have used gemma4. Could it only be OCR and Describe an image?, Keep the instructions/ questions.
+
+Changes and explanations:
+- Set index.html's default model to gemma4 to match the user's installed model choice. The model field remains editable for exact installed tags.
+- Limited the task selector to Extract text (OCR) and Describe an image. Removed the standalone question prompt and its required-question validation from main.js because that task is no longer offered.
+- Kept the Instructions / question field and its existing prompt-appending behavior for both remaining tasks. Added a comment explaining this behavior.
+- Updated introductory text and README.md to reflect the two tasks and Gemma 4 configuration; removed obsolete Gemma 3 model recommendations.
+- Changed the server connectivity hint to use ollama list so it applies to the user's selected model. Updated the integration test's mock model name to gemma4.
+Validation:
+- JavaScript syntax checks passed.
+- Sandboxed test execution hit spawn EPERM; the approved escalated node --test run passed (1 integration test).
+- Live Gemma 4 inference was not tested; use the exact installed model tag if it differs from gemma4.
+
+---
+Date: 2026-10-15 (America/Vancouver)
+User prompt:
+Can you use "http://localhost:11434/api" and "http://localhost:11434/api/tags" for API interface. Remove server.js. The folder should only contain index.html, main.js, style.css, and prompt-history.txt
+
+Changes and explanations:
+- Added OLLAMA_API_URL and OLLAMA_TAG constants with the exact requested addresses in main.js. Model discovery now calls /api/tags directly; generation calls /api/chat directly.
+- Replaced the application-server payload with Ollama's model/messages/images chat format and read generated output from message.content. Explanation: the browser now handles the API contract previously handled by server.js.
+- Kept Gemma 4, OCR, image descriptions, optional instructions/questions, preview, image validation, cancellation, and text export. Added a direct-request timeout and errors for empty output and browser connectivity issues.
+- Updated comments to explain direct browser requests and origin configuration. Use Live Server to open index.html on localhost or 127.0.0.1. If origin access is blocked, configure OLLAMA_ORIGINS for the page's origin and restart Ollama; no machine environment configuration was changed. Reference: https://docs.ollama.com/faq
+- Removed server.js, package.json, README.md, tests, and node_modules as requested. Explanation: eliminate the Node backend and all supporting files so the project contains only index.html, main.js, style.css, and prompt-history.txt. Verified deletion targets were immediate children of this workspace before removing them.
+Validation:
+- node --check main.js passed.
+- In-memory browser mocks verified exact direct API URLs, installed model discovery, OCR and description prompts, optional instructions, base64 image payload, non-streaming requests, and Ollama response display. No test files were retained.
+- Confirmed the project folder contains exactly the four requested files.
+- Live browser-to-Ollama inference and origin permissions were not tested.
+
+---
+Date: 2026-10-15 (America/Vancouver)
+User prompt:
+for the Ollama model, can the dropdown menu only contain vision models? and the non-vision models will not be displayed, or they will be in the dropdown menu as unavalible
+
+Changes and explanations:
+- Replaced the editable model input/datalist in index.html with a required select. Explanation: only confirmed compatible models can now be selected.
+- Model discovery still uses the requested /api/tags URL, then checks each model with POST http://localhost:11434/api/show. Only models whose capabilities include vision appear. Explanation: use Ollama's capability metadata rather than guessing from model names. Reference: https://github.com/ollama/ollama/blob/main/docs/api.md
+- Capability checks run independently; failed or unsupported metadata checks are excluded and reported in the connection status. Text-only models are hidden.
+- Preserve the selected model across refreshes and prefer gemma4 or gemma4:latest on initial connection when available.
+- Disable generation and model selection while checking models or when no vision model is available. Block submission unless the selection is in the confirmed vision list. Explanation: avoid sending images to incompatible or unverified models.
+- Kept the project limited to the four requested files.
+Validation:
+- node --check main.js passed.
+- In-memory mocked checks passed for vision-only options, text-only exclusion, failed lookups, Gemma 4 default selection, selection preservation, empty vision results, and Ollama outages. No test files were added.
+- Live Ollama capability discovery was not tested.

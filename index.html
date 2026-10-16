@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Page metadata and assets. defer runs main.js after the HTML is parsed. -->
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Lens � Image to text</title>
+    <link rel="stylesheet" href="style.css" />
+    <script src="main.js" defer></script>
+  </head>
+  <body>
+    <!-- App branding and a reminder that inference runs through local Ollama. -->
+    <header>
+      <strong>? Lens</strong>
+      <span>LOCAL AI � POWERED BY OLLAMA</span>
+    </header>
+    <main>
+      <p class="eyebrow">A CLOSER LOOK</p>
+      <h1>
+        Your images.
+        <br />
+        <em>Put into words.</em>
+      </h1>
+      <p>Extract text or describe an image, with optional instructions or questions.</p>
+      <!-- Live connection status and a manual retry control. -->
+      <aside>
+        <span id="connection" role="status">Checking Ollama�</span>
+        <button id="refresh" type="button">Check connection</button>
+      </aside>
+      <!-- One form contains the input workflow and its generated output. -->
+      <form id="form">
+        <div class="grid">
+          <!-- Input panel: choose an image, model, task, and optional instructions. -->
+          <section>
+            <h2>
+              01
+              <span>Add an image</span>
+            </h2>
+            <label id="dropzone" class="dropzone">
+              ?
+              <strong>Choose an image or drop it here</strong>
+              <small>PNG, JPEG, WebP - Up to 10 MB</small>
+              <input
+                id="file"
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+              />
+            </label>
+            <!-- The preview replaces the upload area after a valid image is loaded. -->
+            <div id="preview-wrap" hidden>
+              <img id="preview" alt="Selected image" />
+              <p id="filename"></p>
+              <button id="remove" type="button">Remove image</button>
+            </div>
+            <label for="model">Ollama model</label>
+            <!-- Only models with confirmed vision support can be selected. -->
+            <select id="model" required disabled>
+              <option value="">Checking vision models...</option>
+            </select>
+            <label for="mode">What would you like to do?</label>
+            <select id="mode">
+              <option value="extract">Extract text (OCR)</option>
+              <option value="describe">Describe an image</option>
+            </select>
+            <label for="instructions">Instructions / question</label>
+            <textarea
+              id="instructions"
+              rows="3"
+              maxlength="4000"
+              placeholder="Optional instructions, or your question about the image"
+            ></textarea>
+            <div class="actions">
+              <button class="primary" id="generate" disabled>
+                Describe Image
+              </button>
+              <button id="cancel" type="button" hidden>Cancel</button>
+            </div>
+          </section>
+          <!-- Output panel: readonly result plus clipboard and text-file export. -->
+          <section class="result-panel">
+            <h2>
+              02
+              <span>Described Image Text</span>
+            </h2>
+            <p id="status" role="status">LMM Response</p>
+            <textarea
+              id="result"
+              readonly
+              aria-label="Generated text"
+              placeholder="Add an image to get started."
+            ></textarea>
+            <div class="actions">
+              <button id="copy" type="button" disabled>Copy text</button>
+              <button id="save" type="button" disabled>Save .txt</button>
+            </div>
+            <small>Review AI-generated text for accuracy.</small>
+          </section>
+        </div>
+        <!-- role=alert announces validation and request errors to screen readers. -->
+        <p id="error" role="alert"></p>
+      </form>
+      <footer>
+        Local by design. Images are sent to Ollama on this computer and are not
+        saved by Lens.
+      </footer>
+    </main>
+  </body>
+</html>
