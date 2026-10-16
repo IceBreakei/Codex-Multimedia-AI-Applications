@@ -155,3 +155,27 @@ Changes and explanations:
 Validation:
 - node --check main.js passed.
 - Only comments and this history entry changed; application behavior was left unchanged. No new files were added.
+
+---
+Date: 2026-10-16 (America/Vancouver)
+User prompt:
+Now for the second task. Can you update it to support multiple images. These are the requirements for the first step of this second task.
+1. Display a preview of both selected images.
+2. Send both images to the AI.
+3. Generate a separate description for each image.
+4. Clearly show which description belongs to Image 1 and which belongs to Image 2.
+5. Correctly handle the situation where only one image has been selected.
+
+Changes and explanations:
+- Enabled multiple file selection and drag/drop for a maximum of two PNG, JPEG, or WebP images, each up to 10 MB. A second selection can add an image after the first. Explanation: support both simultaneous and incremental selection while preserving single-image use.
+- Replaced single-image state with an ordered images array containing each filename, preview data URL, and raw base64 payload. Validate and decode every newly selected file before committing it; reject excess or invalid files without discarding existing selections.
+- Added numbered previews and individual removal buttons. Removing an image renumbers remaining previews and clears obsolete results. Disable removal while loading or generating to keep preview/result mapping stable.
+- Send each selected image to Ollama in a separate sequential /api/chat request using the selected model, task, and shared optional instructions. Explanation: both selected images reach the AI with separate answers and no dependence on multi-image model support or AI-generated labeling.
+- Added separate result articles headed Image 1 or Image 2 with filenames. HTML descriptions continue through the existing filtered renderer; OCR remains literal text. Copy/save include visible headings and outputs.
+- Single-image selection makes exactly one request and displays only Image 1. Cancellation stops subsequent requests; failures remain under the matching heading and preserve any earlier completed answer. A request failure stops the remaining queue and is reported in status/error controls.
+- Added preview grid and per-image output styles, preserving the user's existing page structure and four-file application layout.
+Validation:
+- node --check main.js passed.
+- In-memory browser mocks passed for one and two image previews, separate image payloads, labeled answers, custom instructions, adding the second file later, the two-image limit, partial failure, cancellation, removal/renumbering, and OCR.
+- HTML formatting rendering was covered previously; this round checked its per-image target wiring with a stub renderer.
+- No live two-image inference or visual browser review was performed in this change.

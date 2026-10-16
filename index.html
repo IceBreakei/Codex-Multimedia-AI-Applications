@@ -36,20 +36,15 @@
                 <section>
                     <h2>
                         01
-                        <span>Add an image</span>
+                        <span>Add images</span>
                     </h2>
                     <label id="dropzone" class="dropzone">
-                        ?
-                        <strong>Choose an image or drop it here</strong>
-                        <small>PNG, JPEG, WebP - Up to 10 MB</small>
-                        <input id="file" type="file" accept="image/png,image/jpeg,image/webp" />
+                        <strong>Choose one or two images, or drop them here</strong>
+                        <small>PNG, JPEG, WebP - Up to 10 MB each</small>
+                        <input id="file" type="file" accept="image/png,image/jpeg,image/webp" multiple />
                     </label>
-                    <!-- The preview replaces the upload area after a valid image is loaded. -->
-                    <div id="preview-wrap" hidden>
-                        <img id="preview" alt="Selected image" />
-                        <p id="filename"></p>
-                        <button id="remove" type="button">Remove image</button>
-                    </div>
+                    <!-- JavaScript adds numbered previews and a remove button for each image. -->
+                    <div id="previews" aria-label="Selected images"></div>
                     <label for="model">Ollama model</label>
                     <!-- Only models with confirmed vision support can be selected. -->
                     <select id="model" required disabled>
