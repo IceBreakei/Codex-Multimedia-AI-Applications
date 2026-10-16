@@ -4,15 +4,15 @@
     <!-- Page metadata and assets. defer runs main.js after the HTML is parsed. -->
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Lens � Image to text</title>
+    <title>Image to text</title>
     <link rel="stylesheet" href="style.css" />
     <script src="main.js" defer></script>
   </head>
   <body>
     <!-- App branding and a reminder that inference runs through local Ollama. -->
     <header>
-      <strong>? Lens</strong>
-      <span>LOCAL AI � POWERED BY OLLAMA</span>
+      <strong>Lens</strong>
+      <span>LOCAL AI - POWERED BY OLLAMA</span>
     </header>
     <main>
       <p class="eyebrow">A CLOSER LOOK</p>
@@ -24,7 +24,7 @@
       <p>Extract text or describe an image, with optional instructions or questions.</p>
       <!-- Live connection status and a manual retry control. -->
       <aside>
-        <span id="connection" role="status">Checking Ollama�</span>
+        <span id="connection" role="status">Checking Ollama</span>
         <button id="refresh" type="button">Check connection</button>
       </aside>
       <!-- One form contains the input workflow and its generated output. -->
