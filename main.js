@@ -16,6 +16,9 @@ const OLLAMA_TAG = "http://localhost:11434/api/tags";
 // A short helper finds an element by its HTML id.
 const $ = (id) => document.getElementById(id);
 // Keep the selected base64 image in memory; track requests and their cancel signal.
+// Each entry is { name, data, base64 }: filename, full preview data URL, and API payload.
+// This ordered array is the source of truth: images[0] is Image 1, images[1] is Image 2.
+// Keeping preview and request loops in the same order makes their labels match.
 let images = [];
 let busy = false;
 let controller;
@@ -53,12 +56,16 @@ const prompts = {
 
 // Read visible words for clipboard and .txt exports, without HTML markup.
 function resultText() {
+    // Read the whole result container, including every image heading and answer.
+    // Copy/download therefore exports all responses together in their display order.
     return $("result").innerText || $("result").textContent || "";
 }
 
 // Model output is untrusted. Rebuild only simple formatting tags, without attributes.
 // Scripts, links, images, styles, and event handlers never enter the live page.
 function renderDescription(html, target) {
+    // target is one image's output div, not the shared result container.
+    // Formatting Image 2 must not overwrite Image 1's heading or completed answer.
     target.classList.add("formatted");
     // A textarea cannot render <strong>. Our result element is a normal <div>.
     // Parse into a separate document, then copy only the allowed formatting nodes.
@@ -101,6 +108,8 @@ function sync() {
     for (const id of ["file", "mode", "instructions"])
         $(id).disabled = busy;
     for (const button of $("previews").querySelectorAll("button")) {
+        // Freeze removal while reading files or running the queue. Otherwise an
+        // array index could change halfway through a request and labels could drift.
         button.disabled = busy || loadingImage;
     }
     $("model").disabled = busy || checkingModels || !visionModels.length;
@@ -182,6 +191,7 @@ async function check() {
 async function choose(files) {
     if (busy || loadingImage || !files.length) return;
     const candidates = Array.from(files);
+    // Count existing selections too: choosing one now and one later still totals two.
     if (images.length + candidates.length > 2) {
         $("error").textContent = "Choose up to two images. Remove an image before adding another.";
         $("file").value = "";
@@ -193,6 +203,8 @@ async function choose(files) {
     sync();
     try {
         // Commit the selection only after every new file is validated and decoded.
+        // A temporary array makes each selection atomic: if decoding one of the
+        // new files fails, none of that selection is appended to the saved images.
         const prepared = [];
         for (const file of candidates) {
             if (!["image/png", "image/jpeg", "image/webp"].includes(file.type) ||
@@ -210,8 +222,10 @@ async function choose(files) {
             await decoded.decode();
             prepared.push({ name: file.name, data, base64: data.split(",")[1] });
         }
+        // Append in picker/drop order; do not replace an image already selected.
         images.push(...prepared);
         renderPreviews();
+        // Previous answers belonged to the previous selection; discard stale output.
         $("result").replaceChildren();
         $("status").textContent = "Ready when you are";
     } catch (error) {
@@ -219,6 +233,7 @@ async function choose(files) {
         $("status").textContent = "Image selection failed";
     } finally {
         loadingImage = false;
+        // Reset the picker so the same file can be selected again after removal.
         $("file").value = "";
         sync();
     }
@@ -226,6 +241,7 @@ async function choose(files) {
 
 // Array order determines both preview numbering and result numbering.
 function renderPreviews() {
+    // Rebuild all cards so labels and removal handlers use the latest array indexes.
     $("previews").replaceChildren();
     images.forEach((image, index) => {
         const figure = document.createElement("figure");
@@ -233,12 +249,14 @@ function renderPreviews() {
         preview.src = image.data;
         preview.alt = `Image ${index + 1}: ${image.name}`;
         const caption = document.createElement("figcaption");
+        // Arrays start at zero; people-facing labels start at one.
         caption.textContent = `Image ${index + 1}: ${image.name}`;
         const remove = document.createElement("button");
         remove.type = "button";
         remove.textContent = `Remove Image ${index + 1}`;
         remove.onclick = () => {
             if (busy || loadingImage) return;
+            // Remove exactly this entry, then renumber and clear the old answers.
             images.splice(index, 1);
             renderPreviews();
             $("result").replaceChildren();
@@ -290,16 +308,23 @@ $("form").onsubmit = async (e) => {
         // Send every selected image in a separate request. This gives each image
         // its own answer, even with models that only accept one image per message.
         // Sequential requests reduce memory pressure and preserve numbering.
+        // With one image, this loop runs once: no placeholder or request for Image 2.
+        // With two, await finishes Image 1 before starting Image 2. These are two
+        // independent requests, not a comparison prompt containing both images.
         for (const [index, image] of images.entries()) {
+            // A cancellation between requests prevents the next job from starting.
             controller.signal.throwIfAborted();
             const card = document.createElement("article");
             card.className = "image-result";
             const heading = document.createElement("h3");
+            // The application writes this label; it does not rely on the AI to
+            // remember numbering. Filenames use textContent so they remain plain text.
             heading.textContent = `Image ${index + 1}: ${image.name}`;
             const output = document.createElement("div");
             output.className = "image-output";
             output.textContent = "Waiting for Ollama...";
             card.append(heading, output);
+            // Append, rather than replace, so earlier completed answers remain visible.
             $("result").append(card);
             $("status").textContent = `Processing Image ${index + 1} of ${images.length}...`;
             try {
@@ -314,6 +339,8 @@ $("form").onsubmit = async (e) => {
                             role: "user",
                             content: prompts[$("mode").value] +
                                 (instructions ? "\nAdditional instructions: " + instructions : ""),
+                            // This request gets ONLY the current image's bytes.
+                            // The next loop iteration sends the other image separately.
                             images: [image.base64],
                         }],
                         stream: false,
@@ -323,12 +350,16 @@ $("form").onsubmit = async (e) => {
                 // Non-streaming /chat returns the answer in message.content.
                 if (!data.message?.content?.trim()) throw Error("Ollama returned no text.");
                 if ($("mode").value === "describe") {
+                    // Both HTML descriptions and literal OCR target their own card.
                     renderDescription(data.message.content, output);
                 } else {
                     // OCR stays literal, including any HTML present in the source image.
                     output.textContent = data.message.content;
                 }
             } catch (error) {
+                // Show failure under the correct image. Earlier answers remain intact.
+                // Rethrowing exits the loop: remaining images are not sent after a
+                // failure or cancellation. The outer catch updates the overall status.
                 output.textContent = error.name === "AbortError"
                     ? "Cancelled. No result generated."
                     : `Could not process this image: ${error.message}`;
@@ -363,6 +394,8 @@ $("form").onsubmit = async (e) => {
     } finally {
         // Restore controls after success, failure, or cancellation.
         // finally runs even when an exception occurs, keeping the app usable for retry.
+        // This runs once for the entire queue, not once per image, so controls
+        // stay locked until all selected images finish or processing stops.
         busy = false;
         controller = null;
         sync();

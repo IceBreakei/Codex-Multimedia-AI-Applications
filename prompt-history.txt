@@ -179,3 +179,18 @@ Validation:
 - In-memory browser mocks passed for one and two image previews, separate image payloads, labeled answers, custom instructions, adding the second file later, the two-image limit, partial failure, cancellation, removal/renumbering, and OCR.
 - HTML formatting rendering was covered previously; this round checked its per-image target wiring with a stub renderer.
 - No live two-image inference or visual browser review was performed in this change.
+
+---
+Date: 2026-10-16 (America/Vancouver)
+User prompt:
+Can you add comments and explain how the application handles multiple images and multiple AI responses?
+
+Changes and explanations:
+- Added comments in main.js explaining the ordered image array and its filename, preview, and base64 fields; incremental selection, two-file limit, atomic validation, picker reset, preview rebuilding, removal, and renumbering.
+- Explained why controls remain locked during loading and generation, preventing image indexes from changing while responses are being produced.
+- Documented the sequential request loop: one independent API request per image, one iteration for a single selection, shared task/instructions, and separate numbered result cards. Explained that this is per-image generation rather than an image-comparison request.
+- Explained per-card HTML/OCR rendering, appending responses without replacing earlier answers, copying/exporting the complete visible result, and how errors/cancellation stop the queue while preserving earlier outputs.
+- Added CSS comments explaining the responsive preview grid, full-image containment, labeled headings, per-response separators, and HTML versus OCR whitespace.
+Validation:
+- node --check main.js passed.
+- Documentation-only change: comments and this log entry were added without changing application behavior or adding files.
